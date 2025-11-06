@@ -84,6 +84,9 @@ local options = {
 	-- Force square pixels on output video
 	-- Some players like recent Firefox versions display videos with non-square pixels with wrong aspect ratio
 	force_square_pixels = false,
+    -- MPV command to run upon successful encoding
+    -- %{output} will be replaced with the path to the resulting file.
+    completion_command = "",
 }
 
 mpopts.read_options(options)
@@ -1743,7 +1746,7 @@ get_sub_options = function()
   local ret = { }
   append_property(ret, "sub-ass-override")
   append_property(ret, "sub-ass-force-style")
-  append_property(ret, "sub-ass-vsfilter-aspect-compat")
+  append_property(ret, "sub-ass-use-video-data")
   append_property(ret, "sub-auto")
   append_property(ret, "sub-pos")
   append_property(ret, "sub-delay")
@@ -2071,6 +2074,9 @@ encode = function(region, startTime, endTime)
     if res then
       message("Encoded successfully! Saved to\\N" .. tostring(bold(out_path)))
       emit_event("encode-finished", "success")
+      if options.completion_command ~= "" then
+        mp.command(options.completion_command:gsub("%%{output}", out_path))
+      end
     else
       message("Encode failed! Check the logs for details.")
       emit_event("encode-finished", "fail")
